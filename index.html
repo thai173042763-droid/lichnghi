@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tổng Hợp Tài Xế Nghỉ — Hàng Ngày</title>
+  <meta name="description" content="Hệ thống tổng hợp danh sách tài xế xin nghỉ hàng ngày" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Exo:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ========== LOADING OVERLAY ========== -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-logo">🚌</div>
+    <div class="loading-text">Đang tải dữ liệu tài xế nghỉ...</div>
+  </div>
+
+  <!-- ========== DASHBOARD CONTAINER ========== -->
+  <div id="dashboardContainer" style="display:none">
+
+    <!-- ========== HEADER ========== -->
+    <header class="hdr">
+      <div class="hdr-left">
+        <div class="logo-icon">TX</div>
+        <div class="logo-text">
+          <span class="name">VẬN TẢI</span>
+          <span class="subtitle">Tài Xế Nghỉ</span>
+        </div>
+        <div class="hdr-divider"></div>
+        <div class="hdr-title-group">
+          <h1 class="hdr-title">Tổng Hợp Nghỉ Hàng Ngày</h1>
+        </div>
+        <span class="hdr-sub" id="lastUpdatedTime">Cập nhật: Đang tải...</span>
+      </div>
+      <div class="hdr-right">
+        <div class="clock-wrap">
+          <span class="clock" id="headerClock">--:--:--</span>
+          <span class="clock-d" id="headerDate"></span>
+        </div>
+        <div class="status-badge online" id="statusBadge">Google Sheets</div>
+        <button class="refresh-btn" id="btnRefreshData">
+          <span class="spin-icon">🔄</span>
+          <span class="refresh-text">Làm mới</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ========== PHẦN 1 — BỘ LỌC TỔNG ========== -->
+    <section class="filter-section">
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card total">
+          <div class="stat-icon">📋</div>
+          <div class="stat-content">
+            <div class="stat-number" id="statTotal">0</div>
+            <div class="stat-label">Tổng đơn nghỉ</div>
+          </div>
+        </div>
+        <div class="stat-card showing">
+          <div class="stat-icon">📊</div>
+          <div class="stat-content">
+            <div class="stat-number" id="statFiltered">0</div>
+            <div class="stat-label">Đang hiển thị</div>
+          </div>
+        </div>
+        <div class="stat-card approved">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <div class="stat-number" id="statApproved">0</div>
+            <div class="stat-label">Đã xác nhận</div>
+          </div>
+        </div>
+        <div class="stat-card cancelled">
+          <div class="stat-icon">❌</div>
+          <div class="stat-content">
+            <div class="stat-number" id="statCancelled">0</div>
+            <div class="stat-label">Đã hủy</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="filter-group flex-1">
+          <label class="filter-label" for="globalDateFrom">Ngày nghỉ từ:</label>
+          <input class="filter-input" type="date" id="globalDateFrom" />
+        </div>
+        <div class="filter-group flex-1">
+          <label class="filter-label" for="globalDateTo">Ngày nghỉ đến:</label>
+          <input class="filter-input" type="date" id="globalDateTo" />
+        </div>
+        <div class="filter-group flex-1">
+          <label class="filter-label" for="globalStatus">Trạng thái:</label>
+          <select class="filter-input" id="globalStatus">
+            <option value="">Tất cả</option>
+            <option value="Xong">Xong</option>
+            <option value="Hủy">Hủy</option>
+          </select>
+        </div>
+        <div class="filter-group flex-1">
+          <label class="filter-label" for="globalShift">Ca nghỉ:</label>
+          <select class="filter-input" id="globalShift">
+            <option value="">Tất cả</option>
+            <option value="Ca 1">Ca 1</option>
+            <option value="Ca 2">Ca 2</option>
+            <option value="Ca 3">Ca 3</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-reset" id="resetFiltersBtn">🔄 Xóa bộ lọc</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========== PHẦN 2 — DANH SÁCH TÀI XẾ NGHỈ ========== -->
+    <section class="section" id="section-drivers">
+      <div class="section-header">
+        <span class="section-badge">Phần 2</span>
+        <span class="section-icon">👤</span>
+        <h2 class="section-title">Danh Sách Tài Xế Nghỉ</h2>
+      </div>
+
+      <!-- Driver Cards Grid -->
+      <div class="driver-cards-grid" id="driverCardsContainer"></div>
+
+      <!-- No Data Message -->
+      <div class="no-data hidden" id="noDataSection2">
+        <div class="no-data-icon">🔍</div>
+        <div class="no-data-text">Không tìm thấy tài xế phù hợp</div>
+      </div>
+    </section>
+
+    <!-- ========== PHẦN 3 — CHI TIẾT (Cột A → M) ========== -->
+    <section class="section" id="section-detail">
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <h2 class="section-title">THÔNG TIN CHI TIẾT NGHỈ</h2>
+      </div>
+
+      <!-- Detail Filter Card -->
+      <div class="detail-filter-card">
+        <div class="detail-filter-group">
+          <label class="detail-filter-label" for="filterMSNV">MSNV</label>
+          <input class="detail-filter-input" type="text" id="filterMSNV" placeholder="Nhập MSNV..." />
+        </div>
+        <div class="detail-filter-group">
+          <label class="detail-filter-label" for="filterName">Họ Tên</label>
+          <input class="detail-filter-input" type="text" id="filterName" placeholder="Nhập tên..." />
+        </div>
+        <div class="detail-filter-group">
+          <label class="detail-filter-label" for="filterShift2">Ca Nghỉ</label>
+          <select class="detail-filter-input" id="filterShift2">
+            <option value="">Tất cả</option>
+            <option value="Ca 1">Ca 1</option>
+            <option value="Ca 2">Ca 2</option>
+            <option value="Ca 3">Ca 3</option>
+          </select>
+        </div>
+        <button class="btn-clear-filter" id="btnClearFilters">✖ Xóa bộ lọc</button>
+      </div>
+
+      <!-- Detail Info Row -->
+      <div class="detail-info-row">
+        <span class="detail-count-text" id="detailCountText">Hiển thị: Đang tải...</span>
+        <button class="btn-download-csv" id="btnDownloadCSV">📥 Tải xuống CSV</button>
+      </div>
+
+      <!-- Table Container -->
+      <div class="table-container">
+        <table class="data-table" id="dataTable">
+          <thead>
+            <tr>
+              <th class="col-stt">STT</th>
+              <th class="sortable col-date" data-sort="dateReq">Ngày Xin Nghỉ</th>
+              <th class="sortable col-msnv" data-sort="msnv">MSNV</th>
+              <th class="sortable col-name" data-sort="name">Họ Tên</th>
+              <th class="col-shift">Ca Nghỉ</th>
+              <th class="col-date">T.Gian Nghỉ</th>
+              <th class="sortable col-date" data-sort="dateOff">Ngày Bắt Đầu Nghỉ</th>
+              <th class="col-date">T.Gian Đi Làm</th>
+              <th class="sortable col-date" data-sort="dateOn">Ngày Đi Làm</th>
+              <th class="col-reason">Lý Do Xin Nghỉ</th>
+              <th class="sortable col-days" data-sort="days">Số Ngày</th>
+              <th class="sortable col-status" data-sort="status">Xác Nhận</th>
+              <th>Cột 1</th>
+              <th>Cột 2</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination">
+        <div class="pagination-controls">
+          <button class="page-btn" id="prevBtn">« Trước</button>
+          <div class="page-info" id="pageInfo"></div>
+          <div class="page-numbers" id="pageNumbers" style="display: none;"></div>
+          <button class="page-btn" id="nextBtn">Sau »</button>
+        </div>
+        <div class="page-size-control">
+          <label for="pageSizeSelect">Số dòng:</label>
+          <select id="pageSizeSelect">
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+      Dữ liệu từ Google Sheets • Tự động cập nhật mỗi 5 phút
+    </footer>
+
+  </div><!-- /dashboardContainer -->
+
+  <script src="app.js"></script>
+</body>
+</html>

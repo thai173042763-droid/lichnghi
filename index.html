@@ -1,227 +1,610 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tổng Hợp Tài Xế Nghỉ — Hàng Ngày</title>
-  <meta name="description" content="Hệ thống tổng hợp danh sách tài xế xin nghỉ hàng ngày" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Exo:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bảng Trực Nghỉ Tài Xế — Hôm Nay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --bg:#0d0e11;
+    --bg-soft:#131519;
+    --panel:#1a1d23;
+    --panel-alt:#20242c;
+    --border:#2b2f38;
+    --amber:#ffb300;
+    --amber-soft:#7a5a12;
+    --amber-glow:rgba(255,179,0,.18);
+    --green:#4cbf7a;
+    --green-soft:rgba(76,191,122,.14);
+    --red:#e4572e;
+    --red-soft:rgba(228,87,46,.14);
+    --text:#eceae4;
+    --text-dim:#8d93a1;
+    --text-faint:#565c68;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(255,179,0,.05), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Be Vietnam Pro',system-ui,sans-serif;
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
+
+  /* ---------- Header ---------- */
+  header{
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, var(--bg-soft), var(--bg));
+    position:sticky;top:0;z-index:20;
+    backdrop-filter:blur(6px);
+  }
+  .header-inner{
+    max-width:1180px;margin:0 auto;padding:18px 22px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:38px;height:38px;border-radius:8px;
+    background:linear-gradient(135deg,var(--amber),#c98600);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono';font-weight:700;color:#191100;font-size:16px;
+    flex-shrink:0;
+  }
+  .brand-text .eyebrow{
+    font-family:'JetBrains Mono';font-size:11px;letter-spacing:.14em;color:var(--amber);text-transform:uppercase;
+  }
+  .brand-text h1{margin:2px 0 0;font-size:19px;font-weight:700;letter-spacing:-.01em;}
+  .clock-box{
+    display:flex;align-items:center;gap:14px;
+    font-family:'JetBrains Mono';
+  }
+  .clock-date{font-size:13px;color:var(--text-dim);text-align:right;}
+  .clock-time{font-size:26px;font-weight:600;letter-spacing:.02em;color:var(--amber);}
+  .clock-time .colon{animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:.15;}}
+
+  main{max-width:1180px;margin:0 auto;padding:28px 22px 0;}
+
+  /* ---------- Summary pills ---------- */
+  .summary-row{
+    display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px;
+  }
+  .pill{
+    display:flex;align-items:center;gap:9px;
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:100px;padding:8px 16px 8px 8px;
+    font-size:13px;color:var(--text-dim);
+  }
+  .pill .num{
+    font-family:'JetBrains Mono';font-weight:700;font-size:15px;color:var(--text);
+    background:var(--panel-alt);border-radius:100px;min-width:26px;height:26px;
+    display:flex;align-items:center;justify-content:center;padding:0 8px;
+  }
+  .pill.total .num{color:var(--amber);}
+
+  /* ---------- Hero: today's board ---------- */
+  .hero{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+    margin-bottom:30px;
+    box-shadow:0 20px 50px -30px rgba(0,0,0,.6);
+  }
+  .hero-head{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    padding:18px 22px;
+    background:linear-gradient(90deg, var(--amber-glow), transparent 60%);
+    border-bottom:1px solid var(--border);
+  }
+  .hero-head h2{
+    margin:0;font-size:15px;letter-spacing:.08em;text-transform:uppercase;
+    font-family:'JetBrains Mono';color:var(--amber);font-weight:600;
+  }
+  .hero-head .sub{font-size:12.5px;color:var(--text-faint);}
+
+  .board-cols{
+    display:grid;
+    grid-template-columns: 90px 1.5fr 1fr 110px 130px 130px;
+    gap:0;
+    padding:10px 22px 6px;
+    font-family:'JetBrains Mono';
+    font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);
+  }
+  .flap-row{
+    display:grid;
+    grid-template-columns: 90px 1.5fr 1fr 110px 130px 130px;
+    align-items:center;gap:0;
+    padding:14px 22px;
+    border-top:1px solid var(--border);
+    animation:flapIn .5s ease both;
+  }
+  .flap-row:hover{background:var(--panel-alt);}
+  @keyframes flapIn{
+    from{opacity:0;transform:translateY(-6px);filter:blur(2px);}
+    to{opacity:1;transform:translateY(0);filter:blur(0);}
+  }
+  .msnv{font-family:'JetBrains Mono';font-size:12.5px;color:var(--text-dim);}
+  .driver-name{font-weight:600;font-size:15px;}
+  .driver-reason{font-size:12px;color:var(--text-faint);margin-top:2px;}
+  .shift-tag{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12.5px;font-weight:600;
+  }
+  .shift-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .shift-Sáng .shift-dot{background:#ffd166;}
+  .shift-Chiều .shift-dot{background:#ff9e4f;}
+  .shift-Tối .shift-dot{background:#7d8bff;}
+  .shift-Nguyên_ngày .shift-dot{background:var(--amber);}
+  .start-time{font-family:'JetBrains Mono';font-size:17px;font-weight:700;color:var(--amber);}
+  .return-date{font-family:'JetBrains Mono';font-size:12.5px;color:var(--text-dim);}
+  .status-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:100px;
+    white-space:nowrap;
+  }
+  .status-ok{background:var(--green-soft);color:var(--green);}
+  .status-pending{background:var(--red-soft);color:var(--red);}
+
+  .hero-empty{
+    padding:42px 22px;text-align:center;color:var(--text-dim);
+  }
+  .hero-empty .big{font-size:34px;margin-bottom:8px;}
+  .hero-empty .msg{font-size:14.5px;}
+
+  /* ---------- Filter bar ---------- */
+  .filter-bar{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    margin-bottom:14px;
+  }
+  .filter-bar input[type="text"], .filter-bar input[type="date"], .filter-bar select{
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    border-radius:8px;padding:9px 12px;font-size:13.5px;font-family:inherit;
+  }
+  .filter-bar input[type="text"]{flex:1;min-width:180px;}
+  .filter-bar input::placeholder{color:var(--text-faint);}
+  .filter-bar select:focus, .filter-bar input:focus{outline:2px solid var(--amber-soft);outline-offset:1px;}
+  .chip-group{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{
+    padding:8px 13px;border-radius:100px;border:1px solid var(--border);
+    background:var(--panel);color:var(--text-dim);font-size:12.5px;cursor:pointer;
+    font-family:'JetBrains Mono';user-select:none;
+  }
+  .chip.active{background:var(--amber);color:#191100;border-color:var(--amber);font-weight:700;}
+
+  /* ---------- Table section ---------- */
+  .table-section{
+    background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    overflow:hidden;margin-top:8px;
+  }
+  .table-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;border-bottom:1px solid var(--border);cursor:pointer;
+  }
+  .table-head h3{margin:0;font-size:14px;color:var(--text-dim);font-weight:600;}
+  .table-head .caret{transition:transform .2s ease;color:var(--text-faint);}
+  .table-head.collapsed .caret{transform:rotate(-90deg);}
+  .table-wrap{overflow-x:auto;}
+  .table-wrap.collapsed{display:none;}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:920px;}
+  th{
+    text-align:left;padding:10px 16px;font-family:'JetBrains Mono';
+    font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-faint);
+    border-bottom:1px solid var(--border);white-space:nowrap;
+  }
+  td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text-dim);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--panel-alt);}
+  td.name-cell{color:var(--text);font-weight:500;}
+  .row-today td{background:var(--amber-glow);}
+
+  .empty-table{padding:30px 20px;text-align:center;color:var(--text-faint);font-size:13.5px;}
+
+  footer{
+    max-width:1180px;margin:34px auto 0;padding:0 22px;
+    font-size:12px;color:var(--text-faint);line-height:1.6;
+  }
+  footer code{background:var(--panel-alt);padding:1px 6px;border-radius:4px;font-family:'JetBrains Mono';color:var(--text-dim);}
+
+  @media (max-width:760px){
+    .board-cols{display:none;}
+    .flap-row{
+      grid-template-columns:1fr;
+      gap:8px;padding:16px 18px;
+    }
+    .flap-row > div{display:flex;justify-content:space-between;align-items:center;}
+    .flap-row .msnv-line::before{content:"MSNV";font-family:'JetBrains Mono';font-size:10px;color:var(--text-faint);}
+    .flap-row .shift-line::before{content:"Ca nghỉ";font-family:'JetBrains Mono';font-size:10px;color:var(--text-faint);}
+    .flap-row .start-line::before{content:"Bắt đầu nghỉ";font-family:'JetBrains Mono';font-size:10px;color:var(--text-faint);}
+    .flap-row .return-line::before{content:"Đi làm lại";font-family:'JetBrains Mono';font-size:10px;color:var(--text-faint);}
+    .flap-row .status-line::before{content:"Trạng thái";font-family:'JetBrains Mono';font-size:10px;color:var(--text-faint);}
+    .clock-time{font-size:20px;}
+  }
+</style>
 </head>
 <body>
 
-  <!-- ========== LOADING OVERLAY ========== -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-spinner"></div>
-    <div class="loading-logo">🚌</div>
-    <div class="loading-text">Đang tải dữ liệu tài xế nghỉ...</div>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark">TX</div>
+      <div class="brand-text">
+        <div class="eyebrow">Bảng trực điều phối</div>
+        <h1>Lịch Nghỉ Tài Xế</h1>
+      </div>
+    </div>
+    <div class="clock-box">
+      <div class="clock-date" id="clockDate">—</div>
+      <div class="clock-time mono" id="clockTime">--<span class="colon">:</span>--<span class="colon">:</span>--</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="summary-row" id="summaryRow"></div>
+
+  <section class="hero">
+    <div class="hero-head">
+      <h2 id="heroTitle">Đang nghỉ hôm nay</h2>
+      <div class="sub" id="heroSub"></div>
+    </div>
+    <div class="board-cols">
+      <div>MSNV</div><div>Họ tên / Lý do</div><div>Ca nghỉ</div><div>Bắt đầu</div><div>Đi làm lại</div><div>Xác nhận</div>
+    </div>
+    <div id="heroBody"></div>
+  </section>
+
+  <div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="Tìm theo tên hoặc MSNV…">
+    <input type="date" id="dateInput">
+    <select id="shiftSelect">
+      <option value="">Tất cả ca</option>
+      <option value="Sáng">Ca sáng</option>
+      <option value="Chiều">Ca chiều</option>
+      <option value="Tối">Ca tối</option>
+      <option value="Nguyên ngày">Nguyên ngày</option>
+    </select>
+    <div class="chip-group" id="statusChips">
+      <div class="chip active" data-status="">Tất cả</div>
+      <div class="chip" data-status="Đã xác nhận">Đã xác nhận</div>
+      <div class="chip" data-status="Chưa xác nhận">Chưa xác nhận</div>
+    </div>
   </div>
 
-  <!-- ========== DASHBOARD CONTAINER ========== -->
-  <div id="dashboardContainer" style="display:none">
+  <section class="table-section">
+    <div class="table-head" id="tableHead">
+      <h3 id="tableTitle">Toàn bộ đơn nghỉ (0)</h3>
+      <span class="caret">▾</span>
+    </div>
+    <div class="table-wrap" id="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>MSNV</th><th>Họ tên</th><th>Ngày xin nghỉ</th><th>Ca nghỉ</th>
+            <th>Giờ bắt đầu</th><th>Ngày bắt đầu nghỉ</th><th>Ngày đi làm lại</th>
+            <th>Số ngày</th><th>Lý do</th><th>Xác nhận</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="empty-table" id="emptyTable" style="display:none;">Không có đơn nghỉ nào khớp bộ lọc.</div>
+    </div>
+  </section>
 
-    <!-- ========== HEADER ========== -->
-    <header class="hdr">
-      <div class="hdr-left">
-        <div class="logo-icon">TX</div>
-        <div class="logo-text">
-          <span class="name">VẬN TẢI</span>
-          <span class="subtitle">Tài Xế Nghỉ</span>
-        </div>
-        <div class="hdr-divider"></div>
-        <div class="hdr-title-group">
-          <h1 class="hdr-title">Tổng Hợp Nghỉ Hàng Ngày</h1>
-        </div>
-        <span class="hdr-sub" id="lastUpdatedTime">Cập nhật: Đang tải...</span>
-      </div>
-      <div class="hdr-right">
-        <div class="clock-wrap">
-          <span class="clock" id="headerClock">--:--:--</span>
-          <span class="clock-d" id="headerDate"></span>
-        </div>
-        <div class="status-badge online" id="statusBadge">Google Sheets</div>
-        <button class="refresh-btn" id="btnRefreshData">
-          <span class="spin-icon">🔄</span>
-          <span class="refresh-text">Làm mới</span>
-        </button>
-      </div>
-    </header>
+  <footer>
+    Để đồng bộ dữ liệu thật: mở file này, tìm dòng <code>const SHEET_CSV_URL = "";</code> trong phần script và dán vào link CSV xuất bản từ Google Sheet của bạn (Tệp → Chia sẻ → Xuất bản lên web → chọn định dạng CSV). Nếu để trống, trang sẽ hiển thị dữ liệu mẫu để bạn xem trước giao diện.
+  </footer>
 
-    <!-- ========== PHẦN 1 — BỘ LỌC TỔNG ========== -->
-    <section class="filter-section">
+</main>
 
-      <!-- Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card total">
-          <div class="stat-icon">📋</div>
-          <div class="stat-content">
-            <div class="stat-number" id="statTotal">0</div>
-            <div class="stat-label">Tổng đơn nghỉ</div>
-          </div>
-        </div>
-        <div class="stat-card showing">
-          <div class="stat-icon">📊</div>
-          <div class="stat-content">
-            <div class="stat-number" id="statFiltered">0</div>
-            <div class="stat-label">Đang hiển thị</div>
-          </div>
-        </div>
-        <div class="stat-card approved">
-          <div class="stat-icon">✅</div>
-          <div class="stat-content">
-            <div class="stat-number" id="statApproved">0</div>
-            <div class="stat-label">Đã xác nhận</div>
-          </div>
-        </div>
-        <div class="stat-card cancelled">
-          <div class="stat-icon">❌</div>
-          <div class="stat-content">
-            <div class="stat-number" id="statCancelled">0</div>
-            <div class="stat-label">Đã hủy</div>
-          </div>
-        </div>
-      </div>
+<script>
+/* =========================================================
+   CẤU HÌNH DỮ LIỆU
+   Dán link CSV đã xuất bản từ Google Sheet vào đây để dùng
+   dữ liệu thật, ví dụ:
+   const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/XXXX/pub?output=csv";
+   Các cột được nhận diện (đúng tên tiêu đề, không phân biệt hoa/thường):
+   MSNV, Họ Tên, Ngày Xin Nghỉ, Ca Nghỉ, T.Gian Nghỉ,
+   Ngày Bắt Đầu Nghỉ, Ngày Đi Làm, Số Ngày, Lý Do Xin Nghỉ, Xác Nhận
+   ========================================================= */
+const SHEET_CSV_URL = "";
 
-      <!-- Filter Bar -->
-      <div class="filter-bar">
-        <div class="filter-group flex-1">
-          <label class="filter-label" for="globalDateFrom">Ngày nghỉ từ:</label>
-          <input class="filter-input" type="date" id="globalDateFrom" />
+/* ---------- Helpers ---------- */
+function pad(n){ return String(n).padStart(2,'0'); }
+function fmtDate(d){ return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`; }
+function fmtTime(d){ return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function addDays(base, n){ const d = new Date(base); d.setDate(d.getDate()+n); return d; }
+function parseVNDate(str){
+  if(!str) return null;
+  const parts = String(str).trim().split(/[\/\-]/);
+  if(parts.length < 3) return null;
+  let [dd,mm,yyyy] = parts;
+  if(yyyy.length===2) yyyy = '20'+yyyy;
+  const d = new Date(parseInt(yyyy), parseInt(mm)-1, parseInt(dd));
+  return isNaN(d) ? null : d;
+}
+function sameDay(a,b){
+  return a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+function stripSpace(cls){ return cls.replace(/\s+/g,'_'); }
+
+/* ---------- Mock data (dùng khi chưa nối Google Sheet) ---------- */
+const today = new Date();
+today.setHours(0,0,0,0);
+
+const MOCK = [
+  {
+    msnv:"VX102", hoTen:"Trần Văn Hùng",
+    ngayXinNghi: fmtDate(addDays(today,-3)),
+    caNghi:"Sáng", tGianNghi:"06:00",
+    ngayBatDauNghi: fmtDate(today),
+    ngayDiLam: fmtDate(addDays(today,1)),
+    soNgay:1, lyDo:"Khám sức khỏe định kỳ", xacNhan:"Đã xác nhận"
+  },
+  {
+    msnv:"VX087", hoTen:"Lê Thị Mai",
+    ngayXinNghi: fmtDate(addDays(today,-1)),
+    caNghi:"Chiều", tGianNghi:"13:00",
+    ngayBatDauNghi: fmtDate(today),
+    ngayDiLam: fmtDate(addDays(today,1)),
+    soNgay:1, lyDo:"Việc gia đình", xacNhan:"Chưa xác nhận"
+  },
+  {
+    msnv:"VX045", hoTen:"Phạm Văn Sơn",
+    ngayXinNghi: fmtDate(addDays(today,-4)),
+    caNghi:"Nguyên ngày", tGianNghi:"00:00",
+    ngayBatDauNghi: fmtDate(addDays(today,-1)),
+    ngayDiLam: fmtDate(addDays(today,3)),
+    soNgay:4, lyDo:"Ốm, nghỉ dài ngày theo chỉ định bác sĩ", xacNhan:"Đã xác nhận"
+  },
+  {
+    msnv:"VX061", hoTen:"Vũ Văn Tâm",
+    ngayXinNghi: fmtDate(addDays(today,-2)),
+    caNghi:"Tối", tGianNghi:"18:00",
+    ngayBatDauNghi: fmtDate(today),
+    ngayDiLam: fmtDate(addDays(today,1)),
+    soNgay:1, lyDo:"Việc cá nhân", xacNhan:"Đã xác nhận"
+  },
+  {
+    msnv:"VX029", hoTen:"Hoàng Văn Long",
+    ngayXinNghi: fmtDate(addDays(today,-1)),
+    caNghi:"Sáng", tGianNghi:"06:30",
+    ngayBatDauNghi: fmtDate(addDays(today,1)),
+    ngayDiLam: fmtDate(addDays(today,2)),
+    soNgay:1, lyDo:"Đưa con đi khám", xacNhan:"Chưa xác nhận"
+  },
+  {
+    msnv:"VX073", hoTen:"Đỗ Thị Hương",
+    ngayXinNghi: fmtDate(addDays(today,-5)),
+    caNghi:"Chiều", tGianNghi:"13:00",
+    ngayBatDauNghi: fmtDate(addDays(today,-2)),
+    ngayDiLam: fmtDate(addDays(today,-1)),
+    soNgay:1, lyDo:"Việc riêng", xacNhan:"Đã xác nhận"
+  },
+  {
+    msnv:"VX118", hoTen:"Ngô Văn Kiên",
+    ngayXinNghi: fmtDate(today),
+    caNghi:"Tối", tGianNghi:"19:00",
+    ngayBatDauNghi: fmtDate(addDays(today,2)),
+    ngayDiLam: fmtDate(addDays(today,3)),
+    soNgay:1, lyDo:"Đám giỗ gia đình", xacNhan:"Đã xác nhận"
+  }
+];
+
+/* ---------- CSV mapping (khi nối Google Sheet thật) ---------- */
+function mapCsvRow(row){
+  const get = (keys) => {
+    for(const k of Object.keys(row)){
+      const norm = k.trim().toLowerCase();
+      if(keys.includes(norm)) return row[k];
+    }
+    return "";
+  };
+  return {
+    msnv: get(["msnv"]),
+    hoTen: get(["họ tên","ho ten","họ và tên"]),
+    ngayXinNghi: get(["ngày xin nghỉ","ngay xin nghi"]),
+    caNghi: get(["ca nghỉ","ca nghi"]),
+    tGianNghi: get(["t.gian nghỉ","tgian nghi","giờ bắt đầu nghỉ"]),
+    ngayBatDauNghi: get(["ngày bắt đầu nghỉ","ngay bat dau nghi"]),
+    ngayDiLam: get(["ngày đi làm","ngay di lam"]),
+    soNgay: get(["số ngày","so ngay"]),
+    lyDo: get(["lý do xin nghỉ","ly do xin nghi","lý do"]),
+    xacNhan: get(["xác nhận","xac nhan"])
+  };
+}
+
+/* ---------- State ---------- */
+let ALL_RECORDS = [];
+
+function loadData(){
+  if(SHEET_CSV_URL){
+    Papa.parse(SHEET_CSV_URL, {
+      download:true, header:true, skipEmptyLines:true,
+      complete: (res) => {
+        ALL_RECORDS = res.data.map(mapCsvRow).filter(r => r.hoTen);
+        renderAll();
+      },
+      error: () => {
+        console.warn("Không tải được Google Sheet, dùng dữ liệu mẫu.");
+        ALL_RECORDS = MOCK;
+        renderAll();
+      }
+    });
+  } else {
+    ALL_RECORDS = MOCK;
+    renderAll();
+  }
+}
+
+/* ---------- Clock ---------- */
+function tickClock(){
+  const now = new Date();
+  document.getElementById('clockDate').textContent =
+    now.toLocaleDateString('vi-VN', { weekday:'long', day:'2-digit', month:'2-digit', year:'numeric' });
+  document.getElementById('clockTime').innerHTML =
+    `${pad(now.getHours())}<span class="colon">:</span>${pad(now.getMinutes())}<span class="colon">:</span>${pad(now.getSeconds())}`;
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+/* ---------- Derived helpers ---------- */
+function isOnLeaveToday(rec){
+  const start = parseVNDate(rec.ngayBatDauNghi);
+  const end = parseVNDate(rec.ngayDiLam); // ngày quay lại làm việc (không tính là ngày nghỉ)
+  if(!start) return false;
+  if(end){
+    return today >= start && today < end;
+  }
+  return sameDay(today, start);
+}
+
+/* ---------- Render: summary pills ---------- */
+function renderSummary(todayList){
+  const counts = { "Sáng":0,"Chiều":0,"Tối":0,"Nguyên ngày":0 };
+  todayList.forEach(r => { if(counts[r.caNghi]!==undefined) counts[r.caNghi]++; });
+  const el = document.getElementById('summaryRow');
+  el.innerHTML = `
+    <div class="pill total"><span class="num">${todayList.length}</span> tài xế nghỉ hôm nay</div>
+    <div class="pill"><span class="num">${counts["Sáng"]}</span> Ca sáng</div>
+    <div class="pill"><span class="num">${counts["Chiều"]}</span> Ca chiều</div>
+    <div class="pill"><span class="num">${counts["Tối"]}</span> Ca tối</div>
+    <div class="pill"><span class="num">${counts["Nguyên ngày"]}</span> Nguyên ngày</div>
+  `;
+}
+
+/* ---------- Render: hero board ---------- */
+function renderHero(todayList){
+  const body = document.getElementById('heroBody');
+  document.getElementById('heroSub').textContent = fmtDate(today);
+
+  if(todayList.length === 0){
+    body.innerHTML = `
+      <div class="hero-empty">
+        <div class="big">✓</div>
+        <div class="msg">Hôm nay không có tài xế nào xin nghỉ.</div>
+      </div>`;
+    return;
+  }
+
+  // sort by start time
+  todayList.sort((a,b) => (a.tGianNghi||"").localeCompare(b.tGianNghi||""));
+
+  body.innerHTML = todayList.map((r,i) => {
+    const shiftClass = 'shift-' + stripSpace(r.caNghi||"");
+    const statusOk = (r.xacNhan||"").toLowerCase().includes("đã");
+    return `
+      <div class="flap-row" style="animation-delay:${i*0.06}s">
+        <div class="msnv msnv-line">${r.msnv||""}</div>
+        <div class="name-block">
+          <div class="driver-name">${r.hoTen||""}</div>
+          <div class="driver-reason">${r.lyDo||""}</div>
         </div>
-        <div class="filter-group flex-1">
-          <label class="filter-label" for="globalDateTo">Ngày nghỉ đến:</label>
-          <input class="filter-input" type="date" id="globalDateTo" />
+        <div class="shift-line">
+          <span class="shift-tag ${shiftClass}"><span class="shift-dot"></span>${r.caNghi||"—"}</span>
         </div>
-        <div class="filter-group flex-1">
-          <label class="filter-label" for="globalStatus">Trạng thái:</label>
-          <select class="filter-input" id="globalStatus">
-            <option value="">Tất cả</option>
-            <option value="Xong">Xong</option>
-            <option value="Hủy">Hủy</option>
-          </select>
+        <div class="start-time start-line">${r.tGianNghi||"—"}</div>
+        <div class="return-date return-line">${r.ngayDiLam ? "→ "+r.ngayDiLam : "—"}</div>
+        <div class="status-line">
+          <span class="status-badge ${statusOk ? 'status-ok' : 'status-pending'}">${statusOk?'●':'○'} ${r.xacNhan||"Chưa rõ"}</span>
         </div>
-        <div class="filter-group flex-1">
-          <label class="filter-label" for="globalShift">Ca nghỉ:</label>
-          <select class="filter-input" id="globalShift">
-            <option value="">Tất cả</option>
-            <option value="Ca 1">Ca 1</option>
-            <option value="Ca 2">Ca 2</option>
-            <option value="Ca 3">Ca 3</option>
-          </select>
-        </div>
-        <div class="filter-actions">
-          <button class="btn-reset" id="resetFiltersBtn">🔄 Xóa bộ lọc</button>
-        </div>
-      </div>
+      </div>`;
+  }).join('');
+}
 
-    </section>
+/* ---------- Render: full table with filters ---------- */
+function getFilters(){
+  return {
+    search: document.getElementById('searchInput').value.trim().toLowerCase(),
+    date: document.getElementById('dateInput').value,
+    shift: document.getElementById('shiftSelect').value,
+    status: document.querySelector('.chip.active').dataset.status
+  };
+}
 
-    <!-- ========== PHẦN 2 — DANH SÁCH TÀI XẾ NGHỈ ========== -->
-    <section class="section" id="section-drivers">
-      <div class="section-header">
-        <span class="section-badge">Phần 2</span>
-        <span class="section-icon">👤</span>
-        <h2 class="section-title">Danh Sách Tài Xế Nghỉ</h2>
-      </div>
+function renderTable(){
+  const f = getFilters();
+  let list = ALL_RECORDS.filter(r => {
+    if(f.search && !(`${r.hoTen} ${r.msnv}`.toLowerCase().includes(f.search))) return false;
+    if(f.shift && r.caNghi !== f.shift) return false;
+    if(f.status && r.xacNhan !== f.status) return false;
+    if(f.date){
+      const picked = new Date(f.date + 'T00:00:00');
+      const start = parseVNDate(r.ngayBatDauNghi);
+      const end = parseVNDate(r.ngayDiLam);
+      const within = start && (end ? (picked >= start && picked < end) : sameDay(picked,start));
+      if(!within) return false;
+    }
+    return true;
+  });
 
-      <!-- Driver Cards Grid -->
-      <div class="driver-cards-grid" id="driverCardsContainer"></div>
+  list.sort((a,b) => (parseVNDate(a.ngayBatDauNghi)||0) - (parseVNDate(b.ngayBatDauNghi)||0));
 
-      <!-- No Data Message -->
-      <div class="no-data hidden" id="noDataSection2">
-        <div class="no-data-icon">🔍</div>
-        <div class="no-data-text">Không tìm thấy tài xế phù hợp</div>
-      </div>
-    </section>
+  document.getElementById('tableTitle').textContent = `Toàn bộ đơn nghỉ (${list.length})`;
 
-    <!-- ========== PHẦN 3 — CHI TIẾT (Cột A → M) ========== -->
-    <section class="section" id="section-detail">
-      <div class="section-header">
-        <span class="section-icon">📋</span>
-        <h2 class="section-title">THÔNG TIN CHI TIẾT NGHỈ</h2>
-      </div>
+  const tbody = document.getElementById('tableBody');
+  const emptyEl = document.getElementById('emptyTable');
 
-      <!-- Detail Filter Card -->
-      <div class="detail-filter-card">
-        <div class="detail-filter-group">
-          <label class="detail-filter-label" for="filterMSNV">MSNV</label>
-          <input class="detail-filter-input" type="text" id="filterMSNV" placeholder="Nhập MSNV..." />
-        </div>
-        <div class="detail-filter-group">
-          <label class="detail-filter-label" for="filterName">Họ Tên</label>
-          <input class="detail-filter-input" type="text" id="filterName" placeholder="Nhập tên..." />
-        </div>
-        <div class="detail-filter-group">
-          <label class="detail-filter-label" for="filterShift2">Ca Nghỉ</label>
-          <select class="detail-filter-input" id="filterShift2">
-            <option value="">Tất cả</option>
-            <option value="Ca 1">Ca 1</option>
-            <option value="Ca 2">Ca 2</option>
-            <option value="Ca 3">Ca 3</option>
-          </select>
-        </div>
-        <button class="btn-clear-filter" id="btnClearFilters">✖ Xóa bộ lọc</button>
-      </div>
+  if(list.length === 0){
+    tbody.innerHTML = "";
+    emptyEl.style.display = "block";
+    return;
+  }
+  emptyEl.style.display = "none";
 
-      <!-- Detail Info Row -->
-      <div class="detail-info-row">
-        <span class="detail-count-text" id="detailCountText">Hiển thị: Đang tải...</span>
-        <button class="btn-download-csv" id="btnDownloadCSV">📥 Tải xuống CSV</button>
-      </div>
+  tbody.innerHTML = list.map(r => {
+    const rowToday = isOnLeaveToday(r) ? 'row-today' : '';
+    const statusOk = (r.xacNhan||"").toLowerCase().includes("đã");
+    return `
+      <tr class="${rowToday}">
+        <td class="mono">${r.msnv||""}</td>
+        <td class="name-cell">${r.hoTen||""}</td>
+        <td>${r.ngayXinNghi||""}</td>
+        <td>${r.caNghi||""}</td>
+        <td class="mono">${r.tGianNghi||""}</td>
+        <td>${r.ngayBatDauNghi||""}</td>
+        <td>${r.ngayDiLam||""}</td>
+        <td>${r.soNgay||""}</td>
+        <td>${r.lyDo||""}</td>
+        <td><span class="status-badge ${statusOk?'status-ok':'status-pending'}">${r.xacNhan||""}</span></td>
+      </tr>`;
+  }).join('');
+}
 
-      <!-- Table Container -->
-      <div class="table-container">
-        <table class="data-table" id="dataTable">
-          <thead>
-            <tr>
-              <th class="col-stt">STT</th>
-              <th class="sortable col-date" data-sort="dateReq">Ngày Xin Nghỉ</th>
-              <th class="sortable col-msnv" data-sort="msnv">MSNV</th>
-              <th class="sortable col-name" data-sort="name">Họ Tên</th>
-              <th class="col-shift">Ca Nghỉ</th>
-              <th class="col-date">T.Gian Nghỉ</th>
-              <th class="sortable col-date" data-sort="dateOff">Ngày Bắt Đầu Nghỉ</th>
-              <th class="col-date">T.Gian Đi Làm</th>
-              <th class="sortable col-date" data-sort="dateOn">Ngày Đi Làm</th>
-              <th class="col-reason">Lý Do Xin Nghỉ</th>
-              <th class="sortable col-days" data-sort="days">Số Ngày</th>
-              <th class="sortable col-status" data-sort="status">Xác Nhận</th>
-              <th>Cột 1</th>
-              <th>Cột 2</th>
-            </tr>
-          </thead>
-          <tbody id="dataTableBody"></tbody>
-        </table>
-      </div>
+/* ---------- Init & events ---------- */
+function renderAll(){
+  const todayList = ALL_RECORDS.filter(isOnLeaveToday);
+  renderSummary(todayList);
+  renderHero(todayList);
+  renderTable();
+}
 
-      <!-- Pagination -->
-      <div class="pagination" id="pagination">
-        <div class="pagination-controls">
-          <button class="page-btn" id="prevBtn">« Trước</button>
-          <div class="page-info" id="pageInfo"></div>
-          <div class="page-numbers" id="pageNumbers" style="display: none;"></div>
-          <button class="page-btn" id="nextBtn">Sau »</button>
-        </div>
-        <div class="page-size-control">
-          <label for="pageSizeSelect">Số dòng:</label>
-          <select id="pageSizeSelect">
-            <option value="20">20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
-      </div>
-    </section>
+document.getElementById('searchInput').addEventListener('input', renderTable);
+document.getElementById('dateInput').addEventListener('change', renderTable);
+document.getElementById('shiftSelect').addEventListener('change', renderTable);
+document.getElementById('statusChips').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if(!chip) return;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  renderTable();
+});
+document.getElementById('tableHead').addEventListener('click', () => {
+  document.getElementById('tableHead').classList.toggle('collapsed');
+  document.getElementById('tableWrap').classList.toggle('collapsed');
+});
 
-    <!-- ========== FOOTER ========== -->
-    <footer class="footer">
-      Dữ liệu từ Google Sheets • Tự động cập nhật mỗi 5 phút
-    </footer>
-
-  </div><!-- /dashboardContainer -->
-
-  <script src="app.js"></script>
+loadData();
+</script>
 </body>
 </html>

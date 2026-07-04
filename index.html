@@ -40,7 +40,6 @@
   }
   .mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
 
-  /* ---------- Header ---------- */
   header{
     border-bottom:1px solid var(--border);
     background:linear-gradient(180deg, var(--bg-soft), var(--bg));
@@ -74,10 +73,19 @@
 
   main{max-width:1180px;margin:0 auto;padding:28px 22px 0;}
 
-  /* ---------- Summary pills ---------- */
-  .summary-row{
-    display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px;
+  .sync-bar{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    margin-bottom:18px;font-size:12px;color:var(--text-faint);font-family:'JetBrains Mono';
   }
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;}
+  .sync-dot.stale{background:var(--text-faint);}
+  .sync-bar button{
+    background:none;border:1px solid var(--border);color:var(--text-dim);
+    border-radius:100px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'JetBrains Mono';
+  }
+  .sync-bar button:hover{border-color:var(--amber);color:var(--amber);}
+
+  .summary-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px;}
   .pill{
     display:flex;align-items:center;gap:9px;
     background:var(--panel);border:1px solid var(--border);
@@ -91,7 +99,6 @@
   }
   .pill.total .num{color:var(--amber);}
 
-  /* ---------- Hero: today's board ---------- */
   .hero{
     background:var(--panel);
     border:1px solid var(--border);
@@ -114,7 +121,7 @@
 
   .board-cols{
     display:grid;
-    grid-template-columns: 90px 1.5fr 1fr 110px 130px 130px;
+    grid-template-columns: 90px 1.6fr 1.1fr 110px 130px 130px;
     gap:0;
     padding:10px 22px 6px;
     font-family:'JetBrains Mono';
@@ -122,7 +129,7 @@
   }
   .flap-row{
     display:grid;
-    grid-template-columns: 90px 1.5fr 1fr 110px 130px 130px;
+    grid-template-columns: 90px 1.6fr 1.1fr 110px 130px 130px;
     align-items:center;gap:0;
     padding:14px 22px;
     border-top:1px solid var(--border);
@@ -136,15 +143,16 @@
   .msnv{font-family:'JetBrains Mono';font-size:12.5px;color:var(--text-dim);}
   .driver-name{font-weight:600;font-size:15px;}
   .driver-reason{font-size:12px;color:var(--text-faint);margin-top:2px;}
-  .shift-tag{
-    display:inline-flex;align-items:center;gap:6px;
-    font-size:12.5px;font-weight:600;
+  .ca-chips{display:flex;gap:5px;flex-wrap:wrap;}
+  .ca-chip{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:11.5px;font-weight:600;
+    background:var(--panel-alt);border-radius:100px;padding:3px 9px 3px 7px;
   }
-  .shift-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-  .shift-Sáng .shift-dot{background:#ffd166;}
-  .shift-Chiều .shift-dot{background:#ff9e4f;}
-  .shift-Tối .shift-dot{background:#7d8bff;}
-  .shift-Nguyên_ngày .shift-dot{background:var(--amber);}
+  .ca-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .ca-dot.ca-1{background:#ffd166;}
+  .ca-dot.ca-2{background:#ff9e4f;}
+  .ca-dot.ca-3{background:#7d8bff;}
   .start-time{font-family:'JetBrains Mono';font-size:17px;font-weight:700;color:var(--amber);}
   .return-date{font-family:'JetBrains Mono';font-size:12.5px;color:var(--text-dim);}
   .status-badge{
@@ -155,17 +163,11 @@
   .status-ok{background:var(--green-soft);color:var(--green);}
   .status-pending{background:var(--red-soft);color:var(--red);}
 
-  .hero-empty{
-    padding:42px 22px;text-align:center;color:var(--text-dim);
-  }
+  .hero-empty{padding:42px 22px;text-align:center;color:var(--text-dim);}
   .hero-empty .big{font-size:34px;margin-bottom:8px;}
   .hero-empty .msg{font-size:14.5px;}
 
-  /* ---------- Filter bar ---------- */
-  .filter-bar{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:center;
-    margin-bottom:14px;
-  }
+  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
   .filter-bar input[type="text"], .filter-bar input[type="date"], .filter-bar select{
     background:var(--panel);border:1px solid var(--border);color:var(--text);
     border-radius:8px;padding:9px 12px;font-size:13.5px;font-family:inherit;
@@ -181,21 +183,14 @@
   }
   .chip.active{background:var(--amber);color:#191100;border-color:var(--amber);font-weight:700;}
 
-  /* ---------- Table section ---------- */
-  .table-section{
-    background:var(--panel);border:1px solid var(--border);border-radius:14px;
-    overflow:hidden;margin-top:8px;
-  }
-  .table-head{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:16px 20px;border-bottom:1px solid var(--border);cursor:pointer;
-  }
+  .table-section{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:8px;}
+  .table-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);cursor:pointer;}
   .table-head h3{margin:0;font-size:14px;color:var(--text-dim);font-weight:600;}
   .table-head .caret{transition:transform .2s ease;color:var(--text-faint);}
   .table-head.collapsed .caret{transform:rotate(-90deg);}
   .table-wrap{overflow-x:auto;}
   .table-wrap.collapsed{display:none;}
-  table{width:100%;border-collapse:collapse;font-size:13px;min-width:920px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:960px;}
   th{
     text-align:left;padding:10px 16px;font-family:'JetBrains Mono';
     font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-faint);
@@ -209,18 +204,12 @@
 
   .empty-table{padding:30px 20px;text-align:center;color:var(--text-faint);font-size:13.5px;}
 
-  footer{
-    max-width:1180px;margin:34px auto 0;padding:0 22px;
-    font-size:12px;color:var(--text-faint);line-height:1.6;
-  }
+  footer{max-width:1180px;margin:34px auto 0;padding:0 22px;font-size:12px;color:var(--text-faint);line-height:1.6;}
   footer code{background:var(--panel-alt);padding:1px 6px;border-radius:4px;font-family:'JetBrains Mono';color:var(--text-dim);}
 
   @media (max-width:760px){
     .board-cols{display:none;}
-    .flap-row{
-      grid-template-columns:1fr;
-      gap:8px;padding:16px 18px;
-    }
+    .flap-row{grid-template-columns:1fr;gap:8px;padding:16px 18px;}
     .flap-row > div{display:flex;justify-content:space-between;align-items:center;}
     .flap-row .msnv-line::before{content:"MSNV";font-family:'JetBrains Mono';font-size:10px;color:var(--text-faint);}
     .flap-row .shift-line::before{content:"Ca nghỉ";font-family:'JetBrains Mono';font-size:10px;color:var(--text-faint);}
@@ -251,6 +240,12 @@
 
 <main>
 
+  <div class="sync-bar">
+    <span class="sync-dot" id="syncDot"></span>
+    <span id="syncText">Đang tải dữ liệu…</span>
+    <button id="refreshBtn" type="button">Tải lại</button>
+  </div>
+
   <div class="summary-row" id="summaryRow"></div>
 
   <section class="hero">
@@ -269,15 +264,14 @@
     <input type="date" id="dateInput">
     <select id="shiftSelect">
       <option value="">Tất cả ca</option>
-      <option value="Sáng">Ca sáng</option>
-      <option value="Chiều">Ca chiều</option>
-      <option value="Tối">Ca tối</option>
-      <option value="Nguyên ngày">Nguyên ngày</option>
+      <option value="Ca 1">Ca 1</option>
+      <option value="Ca 2">Ca 2</option>
+      <option value="Ca 3">Ca 3</option>
     </select>
     <div class="chip-group" id="statusChips">
       <div class="chip active" data-status="">Tất cả</div>
-      <div class="chip" data-status="Đã xác nhận">Đã xác nhận</div>
-      <div class="chip" data-status="Chưa xác nhận">Chưa xác nhận</div>
+      <div class="chip" data-status="Xong">Đã xác nhận</div>
+      <div class="chip" data-status="Chưa">Chưa xác nhận</div>
     </div>
   </div>
 
@@ -302,152 +296,127 @@
   </section>
 
   <footer>
-    Để đồng bộ dữ liệu thật: mở file này, tìm dòng <code>const SHEET_CSV_URL = "";</code> trong phần script và dán vào link CSV xuất bản từ Google Sheet của bạn (Tệp → Chia sẻ → Xuất bản lên web → chọn định dạng CSV). Nếu để trống, trang sẽ hiển thị dữ liệu mẫu để bạn xem trước giao diện.
+    Dữ liệu được đọc từ <code>data.csv</code> trong cùng thư mục. File này được GitHub Actions tự động tải mới từ
+    Google Sheet mỗi ngày lúc <strong>8:00 sáng (giờ Việt Nam)</strong> — xem cấu hình trong
+    <code>.github/workflows/update-data.yml</code>. Bạn cũng có thể vào tab Actions trên GitHub và bấm "Run workflow"
+    để cập nhật ngay lập tức bất cứ lúc nào.
   </footer>
 
 </main>
 
 <script>
-/* =========================================================
-   CẤU HÌNH DỮ LIỆU
-   Dán link CSV đã xuất bản từ Google Sheet vào đây để dùng
-   dữ liệu thật, ví dụ:
-   const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/XXXX/pub?output=csv";
-   Các cột được nhận diện (đúng tên tiêu đề, không phân biệt hoa/thường):
-   MSNV, Họ Tên, Ngày Xin Nghỉ, Ca Nghỉ, T.Gian Nghỉ,
-   Ngày Bắt Đầu Nghỉ, Ngày Đi Làm, Số Ngày, Lý Do Xin Nghỉ, Xác Nhận
-   ========================================================= */
-const SHEET_CSV_URL = "";
-
 /* ---------- Helpers ---------- */
 function pad(n){ return String(n).padStart(2,'0'); }
 function fmtDate(d){ return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`; }
-function fmtTime(d){ return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function addDays(base, n){ const d = new Date(base); d.setDate(d.getDate()+n); return d; }
 function parseVNDate(str){
   if(!str) return null;
-  const parts = String(str).trim().split(/[\/\-]/);
+  const datePart = String(str).trim().split(' ')[0];
+  const parts = datePart.split(/[\/\-]/);
   if(parts.length < 3) return null;
   let [dd,mm,yyyy] = parts;
   if(yyyy.length===2) yyyy = '20'+yyyy;
   const d = new Date(parseInt(yyyy), parseInt(mm)-1, parseInt(dd));
   return isNaN(d) ? null : d;
 }
+function fmtTimeOnly(str){
+  if(!str) return "";
+  const t = String(str).trim();
+  const m = t.match(/^(\d{1,2}):(\d{2})/);
+  return m ? `${pad(m[1])}:${m[2]}` : t;
+}
 function sameDay(a,b){
   return a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
 }
-function stripSpace(cls){ return cls.replace(/\s+/g,'_'); }
+function parseVNDateTime(str){
+  if(!str) return null;
+  const parts = String(str).trim().split(/\s+/);
+  const d = parseVNDate(parts[0]);
+  if(!d) return null;
+  if(parts[1]){
+    const [h,m,s] = parts[1].split(':').map(Number);
+    d.setHours(h||0, m||0, s||0);
+  }
+  return d;
+}
+function splitCa(caStr){
+  if(!caStr) return [];
+  return caStr.split(',').map(s => s.trim()).filter(Boolean);
+}
+function caClass(ca){
+  const n = ca.replace(/\D/g,'');
+  return 'ca-' + (n || '0');
+}
 
-/* ---------- Mock data (dùng khi chưa nối Google Sheet) ---------- */
 const today = new Date();
 today.setHours(0,0,0,0);
 
-const MOCK = [
-  {
-    msnv:"VX102", hoTen:"Trần Văn Hùng",
-    ngayXinNghi: fmtDate(addDays(today,-3)),
-    caNghi:"Sáng", tGianNghi:"06:00",
-    ngayBatDauNghi: fmtDate(today),
-    ngayDiLam: fmtDate(addDays(today,1)),
-    soNgay:1, lyDo:"Khám sức khỏe định kỳ", xacNhan:"Đã xác nhận"
-  },
-  {
-    msnv:"VX087", hoTen:"Lê Thị Mai",
-    ngayXinNghi: fmtDate(addDays(today,-1)),
-    caNghi:"Chiều", tGianNghi:"13:00",
-    ngayBatDauNghi: fmtDate(today),
-    ngayDiLam: fmtDate(addDays(today,1)),
-    soNgay:1, lyDo:"Việc gia đình", xacNhan:"Chưa xác nhận"
-  },
-  {
-    msnv:"VX045", hoTen:"Phạm Văn Sơn",
-    ngayXinNghi: fmtDate(addDays(today,-4)),
-    caNghi:"Nguyên ngày", tGianNghi:"00:00",
-    ngayBatDauNghi: fmtDate(addDays(today,-1)),
-    ngayDiLam: fmtDate(addDays(today,3)),
-    soNgay:4, lyDo:"Ốm, nghỉ dài ngày theo chỉ định bác sĩ", xacNhan:"Đã xác nhận"
-  },
-  {
-    msnv:"VX061", hoTen:"Vũ Văn Tâm",
-    ngayXinNghi: fmtDate(addDays(today,-2)),
-    caNghi:"Tối", tGianNghi:"18:00",
-    ngayBatDauNghi: fmtDate(today),
-    ngayDiLam: fmtDate(addDays(today,1)),
-    soNgay:1, lyDo:"Việc cá nhân", xacNhan:"Đã xác nhận"
-  },
-  {
-    msnv:"VX029", hoTen:"Hoàng Văn Long",
-    ngayXinNghi: fmtDate(addDays(today,-1)),
-    caNghi:"Sáng", tGianNghi:"06:30",
-    ngayBatDauNghi: fmtDate(addDays(today,1)),
-    ngayDiLam: fmtDate(addDays(today,2)),
-    soNgay:1, lyDo:"Đưa con đi khám", xacNhan:"Chưa xác nhận"
-  },
-  {
-    msnv:"VX073", hoTen:"Đỗ Thị Hương",
-    ngayXinNghi: fmtDate(addDays(today,-5)),
-    caNghi:"Chiều", tGianNghi:"13:00",
-    ngayBatDauNghi: fmtDate(addDays(today,-2)),
-    ngayDiLam: fmtDate(addDays(today,-1)),
-    soNgay:1, lyDo:"Việc riêng", xacNhan:"Đã xác nhận"
-  },
-  {
-    msnv:"VX118", hoTen:"Ngô Văn Kiên",
-    ngayXinNghi: fmtDate(today),
-    caNghi:"Tối", tGianNghi:"19:00",
-    ngayBatDauNghi: fmtDate(addDays(today,2)),
-    ngayDiLam: fmtDate(addDays(today,3)),
-    soNgay:1, lyDo:"Đám giỗ gia đình", xacNhan:"Đã xác nhận"
-  }
-];
-
-/* ---------- CSV mapping (khi nối Google Sheet thật) ---------- */
 function mapCsvRow(row){
   const get = (keys) => {
     for(const k of Object.keys(row)){
       const norm = k.trim().toLowerCase();
-      if(keys.includes(norm)) return row[k];
+      if(keys.includes(norm)) return (row[k]||"").trim();
     }
     return "";
   };
   return {
+    ngayXinNghi: get(["ngày xin nghỉ"]),
     msnv: get(["msnv"]),
-    hoTen: get(["họ tên","ho ten","họ và tên"]),
-    ngayXinNghi: get(["ngày xin nghỉ","ngay xin nghi"]),
-    caNghi: get(["ca nghỉ","ca nghi"]),
-    tGianNghi: get(["t.gian nghỉ","tgian nghi","giờ bắt đầu nghỉ"]),
-    ngayBatDauNghi: get(["ngày bắt đầu nghỉ","ngay bat dau nghi"]),
-    ngayDiLam: get(["ngày đi làm","ngay di lam"]),
-    soNgay: get(["số ngày","so ngay"]),
-    lyDo: get(["lý do xin nghỉ","ly do xin nghi","lý do"]),
-    xacNhan: get(["xác nhận","xac nhan"])
+    hoTen: get(["họ tên","họ và tên"]),
+    caNghi: get(["ca nghỉ"]),
+    tGianNghi: get(["thời gian bắt đầu nghỉ"]),
+    ngayBatDauNghi: get(["ngày bắt đầu nghỉ"]),
+    tGianDiLam: get(["thời gian bắt đầu đi làm"]),
+    ngayDiLam: get(["ngày bắt đầu đi làm"]),
+    lyDo: get(["lý do xin nghỉ"]),
+    soNgay: get(["số ngày nghỉ","số ngày"]),
+    xacNhan: get(["xác nhận"])
   };
 }
 
-/* ---------- State ---------- */
 let ALL_RECORDS = [];
 
-function loadData(){
-  if(SHEET_CSV_URL){
-    Papa.parse(SHEET_CSV_URL, {
-      download:true, header:true, skipEmptyLines:true,
-      complete: (res) => {
-        ALL_RECORDS = res.data.map(mapCsvRow).filter(r => r.hoTen);
-        renderAll();
-      },
-      error: () => {
-        console.warn("Không tải được Google Sheet, dùng dữ liệu mẫu.");
-        ALL_RECORDS = MOCK;
-        renderAll();
-      }
-    });
-  } else {
-    ALL_RECORDS = MOCK;
-    renderAll();
-  }
+function setSyncStatus(text, ok){
+  document.getElementById('syncText').textContent = text;
+  document.getElementById('syncDot').classList.toggle('stale', !ok);
 }
 
-/* ---------- Clock ---------- */
+function loadData(){
+  setSyncStatus('Đang tải dữ liệu…', true);
+  Papa.parse('./data.csv?_=' + Date.now(), {
+    download:true, header:true, skipEmptyLines:true,
+    complete: (res) => {
+      const rows = res.data.map(mapCsvRow).filter(r => r.hoTen);
+      if(rows.length === 0){
+        setSyncStatus('Không đọc được dữ liệu từ data.csv — kiểm tra lại workflow.', false);
+        ALL_RECORDS = [];
+      } else {
+        ALL_RECORDS = rows;
+        fetchLastUpdated();
+      }
+      renderAll();
+    },
+    error: () => {
+      setSyncStatus('Không tìm thấy data.csv — chờ workflow chạy lần đầu hoặc bấm "Tải lại".', false);
+      ALL_RECORDS = [];
+      renderAll();
+    }
+  });
+}
+
+function fetchLastUpdated(){
+  fetch('./last_updated.txt?_=' + Date.now())
+    .then(r => r.ok ? r.text() : Promise.reject())
+    .then(txt => {
+      const d = new Date(txt.trim());
+      if(isNaN(d)){ setSyncStatus('Dữ liệu đã tải.', true); return; }
+      setSyncStatus('Cập nhật lần cuối: ' + d.toLocaleString('vi-VN', {dateStyle:'short', timeStyle:'short'}), true);
+    })
+    .catch(() => setSyncStatus('Dữ liệu đã tải (chưa có mốc thời gian cập nhật).', true));
+}
+
+document.getElementById('refreshBtn').addEventListener('click', loadData);
+
 function tickClock(){
   const now = new Date();
   document.getElementById('clockDate').textContent =
@@ -458,10 +427,9 @@ function tickClock(){
 tickClock();
 setInterval(tickClock, 1000);
 
-/* ---------- Derived helpers ---------- */
 function isOnLeaveToday(rec){
   const start = parseVNDate(rec.ngayBatDauNghi);
-  const end = parseVNDate(rec.ngayDiLam); // ngày quay lại làm việc (không tính là ngày nghỉ)
+  const end = parseVNDate(rec.ngayDiLam);
   if(!start) return false;
   if(end){
     return today >= start && today < end;
@@ -469,21 +437,31 @@ function isOnLeaveToday(rec){
   return sameDay(today, start);
 }
 
-/* ---------- Render: summary pills ---------- */
+function dedupeByLatestSubmission(records){
+  const byKey = new Map();
+  records.forEach(r => {
+    const key = r.msnv || r.hoTen;
+    const ts = parseVNDateTime(r.ngayXinNghi);
+    const existing = byKey.get(key);
+    if(!existing || (ts && (!existing._ts || ts > existing._ts))){
+      byKey.set(key, Object.assign({}, r, { _ts: ts }));
+    }
+  });
+  return Array.from(byKey.values());
+}
+
 function renderSummary(todayList){
-  const counts = { "Sáng":0,"Chiều":0,"Tối":0,"Nguyên ngày":0 };
-  todayList.forEach(r => { if(counts[r.caNghi]!==undefined) counts[r.caNghi]++; });
+  const counts = { "Ca 1":0, "Ca 2":0, "Ca 3":0 };
+  todayList.forEach(r => splitCa(r.caNghi).forEach(ca => { if(counts[ca]!==undefined) counts[ca]++; }));
   const el = document.getElementById('summaryRow');
   el.innerHTML = `
     <div class="pill total"><span class="num">${todayList.length}</span> tài xế nghỉ hôm nay</div>
-    <div class="pill"><span class="num">${counts["Sáng"]}</span> Ca sáng</div>
-    <div class="pill"><span class="num">${counts["Chiều"]}</span> Ca chiều</div>
-    <div class="pill"><span class="num">${counts["Tối"]}</span> Ca tối</div>
-    <div class="pill"><span class="num">${counts["Nguyên ngày"]}</span> Nguyên ngày</div>
+    <div class="pill"><span class="num">${counts["Ca 1"]}</span> Ca 1</div>
+    <div class="pill"><span class="num">${counts["Ca 2"]}</span> Ca 2</div>
+    <div class="pill"><span class="num">${counts["Ca 3"]}</span> Ca 3</div>
   `;
 }
 
-/* ---------- Render: hero board ---------- */
 function renderHero(todayList){
   const body = document.getElementById('heroBody');
   document.getElementById('heroSub').textContent = fmtDate(today);
@@ -497,12 +475,13 @@ function renderHero(todayList){
     return;
   }
 
-  // sort by start time
   todayList.sort((a,b) => (a.tGianNghi||"").localeCompare(b.tGianNghi||""));
 
   body.innerHTML = todayList.map((r,i) => {
-    const shiftClass = 'shift-' + stripSpace(r.caNghi||"");
-    const statusOk = (r.xacNhan||"").toLowerCase().includes("đã");
+    const statusOk = (r.xacNhan||"").toLowerCase().includes("xong");
+    const caChips = splitCa(r.caNghi).map(ca =>
+      `<span class="ca-chip"><span class="ca-dot ${caClass(ca)}"></span>${ca}</span>`
+    ).join('');
     return `
       <div class="flap-row" style="animation-delay:${i*0.06}s">
         <div class="msnv msnv-line">${r.msnv||""}</div>
@@ -510,19 +489,16 @@ function renderHero(todayList){
           <div class="driver-name">${r.hoTen||""}</div>
           <div class="driver-reason">${r.lyDo||""}</div>
         </div>
-        <div class="shift-line">
-          <span class="shift-tag ${shiftClass}"><span class="shift-dot"></span>${r.caNghi||"—"}</span>
-        </div>
-        <div class="start-time start-line">${r.tGianNghi||"—"}</div>
+        <div class="shift-line"><div class="ca-chips">${caChips || '—'}</div></div>
+        <div class="start-time start-line">${fmtTimeOnly(r.tGianNghi)||"—"}</div>
         <div class="return-date return-line">${r.ngayDiLam ? "→ "+r.ngayDiLam : "—"}</div>
         <div class="status-line">
-          <span class="status-badge ${statusOk ? 'status-ok' : 'status-pending'}">${statusOk?'●':'○'} ${r.xacNhan||"Chưa rõ"}</span>
+          <span class="status-badge ${statusOk ? 'status-ok' : 'status-pending'}">${statusOk?'●':'○'} ${r.xacNhan || "Chưa rõ"}</span>
         </div>
       </div>`;
   }).join('');
 }
 
-/* ---------- Render: full table with filters ---------- */
 function getFilters(){
   return {
     search: document.getElementById('searchInput').value.trim().toLowerCase(),
@@ -536,8 +512,9 @@ function renderTable(){
   const f = getFilters();
   let list = ALL_RECORDS.filter(r => {
     if(f.search && !(`${r.hoTen} ${r.msnv}`.toLowerCase().includes(f.search))) return false;
-    if(f.shift && r.caNghi !== f.shift) return false;
-    if(f.status && r.xacNhan !== f.status) return false;
+    if(f.shift && !splitCa(r.caNghi).includes(f.shift)) return false;
+    if(f.status === 'Xong' && !(r.xacNhan||"").toLowerCase().includes('xong')) return false;
+    if(f.status === 'Chưa' && (r.xacNhan||"").toLowerCase().includes('xong')) return false;
     if(f.date){
       const picked = new Date(f.date + 'T00:00:00');
       const start = parseVNDate(r.ngayBatDauNghi);
@@ -564,14 +541,14 @@ function renderTable(){
 
   tbody.innerHTML = list.map(r => {
     const rowToday = isOnLeaveToday(r) ? 'row-today' : '';
-    const statusOk = (r.xacNhan||"").toLowerCase().includes("đã");
+    const statusOk = (r.xacNhan||"").toLowerCase().includes("xong");
     return `
       <tr class="${rowToday}">
         <td class="mono">${r.msnv||""}</td>
         <td class="name-cell">${r.hoTen||""}</td>
         <td>${r.ngayXinNghi||""}</td>
         <td>${r.caNghi||""}</td>
-        <td class="mono">${r.tGianNghi||""}</td>
+        <td class="mono">${fmtTimeOnly(r.tGianNghi)||""}</td>
         <td>${r.ngayBatDauNghi||""}</td>
         <td>${r.ngayDiLam||""}</td>
         <td>${r.soNgay||""}</td>
@@ -581,9 +558,8 @@ function renderTable(){
   }).join('');
 }
 
-/* ---------- Init & events ---------- */
 function renderAll(){
-  const todayList = ALL_RECORDS.filter(isOnLeaveToday);
+  const todayList = dedupeByLatestSubmission(ALL_RECORDS.filter(isOnLeaveToday));
   renderSummary(todayList);
   renderHero(todayList);
   renderTable();

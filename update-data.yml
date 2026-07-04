@@ -1,0 +1,45 @@
+name: Cập nhật dữ liệu lịch nghỉ
+
+on:
+  schedule:
+    # 01:00 UTC = 08:00 giờ Việt Nam (UTC+7)
+    - cron: '0 1 * * *'
+  workflow_dispatch: {}   # cho phép bấm "Run workflow" để chạy tay bất cứ lúc nào
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Tải CSV mới nhất từ Google Sheet
+        env:
+          SHEET_ID: "15vy8MLlDXP0yNR9V98lNaF7O-b1qF5-rTWXbaB0sb4g"
+          GID: "1269318824"
+        run: |
+          curl -fL "https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}" -o data.csv.new
+          # Kiểm tra file tải về không rỗng và có vẻ là CSV hợp lệ trước khi ghi đè
+          if [ -s data.csv.new ] && head -c 200 data.csv.new | grep -qi "MSNV"; then
+            mv data.csv.new data.csv
+          else
+            echo "Tải dữ liệu thất bại hoặc sai định dạng — giữ nguyên data.csv cũ."
+            rm -f data.csv.new
+            exit 1
+          fi
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > last_updated.txt
+
+      - name: Commit & push nếu có thay đổi
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.csv last_updated.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "Tự động cập nhật dữ liệu lịch nghỉ - $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          else
+            echo "Không có thay đổi dữ liệu."
+          fi

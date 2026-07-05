@@ -311,7 +311,7 @@ function fmtDate(d){ return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getF
 function addDays(base, n){ const d = new Date(base); d.setDate(d.getDate()+n); return d; }
 function parseVNDate(str){
   if(!str) return null;
-  const datePart = String(str).trim().split(' ')[0];
+  const datePart = String(str).trim().split(' ')[0]; // bỏ phần giờ nếu có (vd "04/08/2025 9:37:07")
   const parts = datePart.split(/[\/\-]/);
   if(parts.length < 3) return null;
   let [dd,mm,yyyy] = parts;
@@ -351,6 +351,7 @@ function caClass(ca){
 const today = new Date();
 today.setHours(0,0,0,0);
 
+/* ---------- CSV mapping (khớp đúng tiêu đề cột trong Google Sheet) ---------- */
 function mapCsvRow(row){
   const get = (keys) => {
     for(const k of Object.keys(row)){
@@ -374,6 +375,7 @@ function mapCsvRow(row){
   };
 }
 
+/* ---------- State ---------- */
 let ALL_RECORDS = [];
 
 function setSyncStatus(text, ok){
@@ -417,6 +419,7 @@ function fetchLastUpdated(){
 
 document.getElementById('refreshBtn').addEventListener('click', loadData);
 
+/* ---------- Clock ---------- */
 function tickClock(){
   const now = new Date();
   document.getElementById('clockDate').textContent =
@@ -427,16 +430,23 @@ function tickClock(){
 tickClock();
 setInterval(tickClock, 1000);
 
-function isOnLeaveToday(rec){
+/* ---------- Derived helpers ---------- */
+function isOnLeaveOnDate(rec, date){
   const start = parseVNDate(rec.ngayBatDauNghi);
   const end = parseVNDate(rec.ngayDiLam);
   if(!start) return false;
   if(end){
-    return today >= start && today < end;
+    return date >= start && date < end;
   }
-  return sameDay(today, start);
+  return sameDay(date, start);
+}
+function isOnLeaveToday(rec){
+  return isOnLeaveOnDate(rec, today);
 }
 
+/* Một người có thể có nhiều dòng đơn (vd. đơn cập nhật/đổi lịch nghỉ) trùng
+   thời gian nghỉ. Khi hiển thị "đang nghỉ hôm nay", chỉ giữ lại đơn nộp gần
+   nhất (theo cột "ngày xin nghỉ") cho mỗi MSNV để tránh đếm trùng người. */
 function dedupeByLatestSubmission(records){
   const byKey = new Map();
   records.forEach(r => {
@@ -450,6 +460,7 @@ function dedupeByLatestSubmission(records){
   return Array.from(byKey.values());
 }
 
+/* ---------- Render: summary pills ---------- */
 function renderSummary(todayList){
   const counts = { "Ca 1":0, "Ca 2":0, "Ca 3":0 };
   todayList.forEach(r => splitCa(r.caNghi).forEach(ca => { if(counts[ca]!==undefined) counts[ca]++; }));
@@ -462,15 +473,21 @@ function renderSummary(todayList){
   `;
 }
 
-function renderHero(todayList){
+/* ---------- Render: hero board ---------- */
+function renderHero(todayList, viewDate, filtersActive){
   const body = document.getElementById('heroBody');
-  document.getElementById('heroSub').textContent = fmtDate(today);
+  const isToday = sameDay(viewDate, today);
+  document.getElementById('heroTitle').textContent = isToday ? 'Đang nghỉ hôm nay' : 'Đang nghỉ ngày ' + fmtDate(viewDate);
+  document.getElementById('heroSub').textContent = fmtDate(viewDate);
 
   if(todayList.length === 0){
+    const msg = filtersActive
+      ? 'Không có ai khớp bộ lọc trong danh sách nghỉ ' + (isToday ? 'hôm nay' : 'ngày ' + fmtDate(viewDate)) + '.'
+      : (isToday ? 'Hôm nay không có tài xế nào xin nghỉ.' : 'Ngày ' + fmtDate(viewDate) + ' không có tài xế nào xin nghỉ.');
     body.innerHTML = `
       <div class="hero-empty">
         <div class="big">✓</div>
-        <div class="msg">Hôm nay không có tài xế nào xin nghỉ.</div>
+        <div class="msg">${msg}</div>
       </div>`;
     return;
   }
@@ -499,6 +516,7 @@ function renderHero(todayList){
   }).join('');
 }
 
+/* ---------- Render: full table with filters ---------- */
 function getFilters(){
   return {
     search: document.getElementById('searchInput').value.trim().toLowerCase(),
@@ -511,10 +529,7 @@ function getFilters(){
 function renderTable(){
   const f = getFilters();
   let list = ALL_RECORDS.filter(r => {
-    if(f.search && !(`${r.hoTen} ${r.msnv}`.toLowerCase().includes(f.search))) return false;
-    if(f.shift && !splitCa(r.caNghi).includes(f.shift)) return false;
-    if(f.status === 'Xong' && !(r.xacNhan||"").toLowerCase().includes('xong')) return false;
-    if(f.status === 'Chưa' && (r.xacNhan||"").toLowerCase().includes('xong')) return false;
+    if(!matchesCommonFilters(r, f)) return false;
     if(f.date){
       const picked = new Date(f.date + 'T00:00:00');
       const start = parseVNDate(r.ngayBatDauNghi);
@@ -558,22 +573,41 @@ function renderTable(){
   }).join('');
 }
 
-function renderAll(){
-  const todayList = dedupeByLatestSubmission(ALL_RECORDS.filter(isOnLeaveToday));
-  renderSummary(todayList);
-  renderHero(todayList);
+/* ---------- Init & events ---------- */
+function matchesCommonFilters(r, f){
+  if(f.search && !(`${r.hoTen} ${r.msnv}`.toLowerCase().includes(f.search))) return false;
+  if(f.shift && !splitCa(r.caNghi).includes(f.shift)) return false;
+  if(f.status === 'Xong' && !(r.xacNhan||"").toLowerCase().includes('xong')) return false;
+  if(f.status === 'Chưa' && (r.xacNhan||"").toLowerCase().includes('xong')) return false;
+  return true;
+}
+
+function applyFilters(){
+  const f = getFilters();
+  const viewDate = f.date ? new Date(f.date + 'T00:00:00') : today;
+  const filtersActive = !!(f.search || f.shift || f.status);
+
+  let heroList = dedupeByLatestSubmission(ALL_RECORDS.filter(r => isOnLeaveOnDate(r, viewDate)));
+  heroList = heroList.filter(r => matchesCommonFilters(r, f));
+
+  renderSummary(heroList);
+  renderHero(heroList, viewDate, filtersActive);
   renderTable();
 }
 
-document.getElementById('searchInput').addEventListener('input', renderTable);
-document.getElementById('dateInput').addEventListener('change', renderTable);
-document.getElementById('shiftSelect').addEventListener('change', renderTable);
+function renderAll(){
+  applyFilters();
+}
+
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+document.getElementById('dateInput').addEventListener('change', applyFilters);
+document.getElementById('shiftSelect').addEventListener('change', applyFilters);
 document.getElementById('statusChips').addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
   if(!chip) return;
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
-  renderTable();
+  applyFilters();
 });
 document.getElementById('tableHead').addEventListener('click', () => {
   document.getElementById('tableHead').classList.toggle('collapsed');

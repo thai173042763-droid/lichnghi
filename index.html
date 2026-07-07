@@ -168,13 +168,13 @@
   .hero-empty .msg{font-size:14.5px;}
 
   .filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
-  .filter-bar input[type="text"], .filter-bar input[type="date"], .filter-bar select{
+  .filter-bar input[type="text"], .filter-bar input[type="date"]{
     background:var(--panel);border:1px solid var(--border);color:var(--text);
     border-radius:8px;padding:9px 12px;font-size:13.5px;font-family:inherit;
   }
   .filter-bar input[type="text"]{flex:1;min-width:180px;}
   .filter-bar input::placeholder{color:var(--text-faint);}
-  .filter-bar select:focus, .filter-bar input:focus{outline:2px solid var(--amber-soft);outline-offset:1px;}
+  .filter-bar input:focus{outline:2px solid var(--amber-soft);outline-offset:1px;}
   .chip-group{display:flex;gap:6px;flex-wrap:wrap;}
   .chip{
     padding:8px 13px;border-radius:100px;border:1px solid var(--border);
@@ -262,12 +262,12 @@
   <div class="filter-bar">
     <input type="text" id="searchInput" placeholder="Tìm theo tên hoặc MSNV…">
     <input type="date" id="dateInput">
-    <select id="shiftSelect">
-      <option value="">Tất cả ca</option>
-      <option value="Ca 1">Ca 1</option>
-      <option value="Ca 2">Ca 2</option>
-      <option value="Ca 3">Ca 3</option>
-    </select>
+    <div class="chip-group" id="shiftChips">
+      <div class="chip active" data-shift="">Tất cả ca</div>
+      <div class="chip" data-shift="Ca 1">Ca 1</div>
+      <div class="chip" data-shift="Ca 2">Ca 2</div>
+      <div class="chip" data-shift="Ca 3">Ca 3</div>
+    </div>
     <div class="chip-group" id="statusChips">
       <div class="chip active" data-status="">Tất cả</div>
       <div class="chip" data-status="Xong">Đã xác nhận</div>
@@ -297,7 +297,7 @@
 
   <footer>
     Dữ liệu được đọc từ <code>data.csv</code> trong cùng thư mục. File này được GitHub Actions tự động tải mới từ
-    Google Sheet mỗi ngày lúc <strong>8:00 sáng (giờ Việt Nam)</strong> — xem cấu hình trong
+    Google Sheet mỗi giờ vào phút 15 (giờ Việt Nam) — xem cấu hình trong
     <code>.github/workflows/update-data.yml</code>. Bạn cũng có thể vào tab Actions trên GitHub và bấm "Run workflow"
     để cập nhật ngay lập tức bất cứ lúc nào.
   </footer>
@@ -518,11 +518,14 @@ function renderHero(todayList, viewDate, filtersActive){
 
 /* ---------- Render: full table with filters ---------- */
 function getFilters(){
+  const activeShifts = Array.from(document.querySelectorAll('#shiftChips .chip.active'))
+    .map(c => c.dataset.shift)
+    .filter(Boolean);
   return {
     search: document.getElementById('searchInput').value.trim().toLowerCase(),
     date: document.getElementById('dateInput').value,
-    shift: document.getElementById('shiftSelect').value,
-    status: document.querySelector('.chip.active').dataset.status
+    shift: activeShifts, // mảng, ví dụ ["Ca 1","Ca 2"]
+    status: document.querySelector('#statusChips .chip.active').dataset.status
   };
 }
 
@@ -576,7 +579,7 @@ function renderTable(){
 /* ---------- Init & events ---------- */
 function matchesCommonFilters(r, f){
   if(f.search && !(`${r.hoTen} ${r.msnv}`.toLowerCase().includes(f.search))) return false;
-  if(f.shift && !splitCa(r.caNghi).includes(f.shift)) return false;
+  if(f.shift.length && !splitCa(r.caNghi).some(ca => f.shift.includes(ca))) return false;
   if(f.status === 'Xong' && !(r.xacNhan||"").toLowerCase().includes('xong')) return false;
   if(f.status === 'Chưa' && (r.xacNhan||"").toLowerCase().includes('xong')) return false;
   return true;
@@ -585,7 +588,7 @@ function matchesCommonFilters(r, f){
 function applyFilters(){
   const f = getFilters();
   const viewDate = f.date ? new Date(f.date + 'T00:00:00') : today;
-  const filtersActive = !!(f.search || f.shift || f.status);
+  const filtersActive = !!(f.search || f.shift.length || f.status);
 
   let heroList = dedupeByLatestSubmission(ALL_RECORDS.filter(r => isOnLeaveOnDate(r, viewDate)));
   heroList = heroList.filter(r => matchesCommonFilters(r, f));
@@ -601,11 +604,25 @@ function renderAll(){
 
 document.getElementById('searchInput').addEventListener('input', applyFilters);
 document.getElementById('dateInput').addEventListener('change', applyFilters);
-document.getElementById('shiftSelect').addEventListener('change', applyFilters);
+document.getElementById('shiftChips').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if(!chip) return;
+  const all = document.getElementById('shiftChips').querySelectorAll('.chip');
+  if(chip.dataset.shift === ''){
+    all.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  } else {
+    document.querySelector('#shiftChips .chip[data-shift=""]').classList.remove('active');
+    chip.classList.toggle('active');
+    const anyActive = Array.from(all).some(c => c.classList.contains('active'));
+    if(!anyActive) document.querySelector('#shiftChips .chip[data-shift=""]').classList.add('active');
+  }
+  applyFilters();
+});
 document.getElementById('statusChips').addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
   if(!chip) return;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('#statusChips .chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
   applyFilters();
 });

@@ -592,6 +592,7 @@ function applyFilters(){
 
   let heroList = dedupeByLatestSubmission(ALL_RECORDS.filter(r => isOnLeaveOnDate(r, viewDate)));
   heroList = heroList.filter(r => matchesCommonFilters(r, f));
+  heroList = heroList.filter(r => !(r.xacNhan||"").toLowerCase().includes('xong')); // ẩn đơn đã xác nhận "Xong" khỏi bảng trên
 
   renderSummary(heroList);
   renderHero(heroList, viewDate, filtersActive);

@@ -605,6 +605,10 @@ function applyFilters(){
 
   let heroList = dedupeByLatestSubmission(ALL_RECORDS.filter(r => isOnLeaveOnDate(r, viewDate)));
   heroList = heroList.filter(r => matchesCommonFilters(r, f));
+  // Ẩn khỏi khối "Đang nghỉ hôm nay" những đơn đã xác nhận "Xong" —
+  // khối này chỉ nên hiện các đơn cần chú ý. Bảng đầy đủ bên dưới vẫn giữ nguyên
+  // toàn bộ để tra cứu lịch sử.
+  heroList = heroList.filter(r => !(r.xacNhan||"").toLowerCase().includes("xong"));
 
   renderSummary(heroList);
   renderHero(heroList, viewDate, filtersActive);

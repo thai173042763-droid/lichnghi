@@ -431,12 +431,28 @@ tickClock();
 setInterval(tickClock, 1000);
 
 /* ---------- Derived helpers ---------- */
+/* Ghép ngày + giờ thành 1 mốc thời gian đầy đủ. Nếu không có giờ, mặc định 00:00. */
+function combineDateTime(dateStr, timeStr){
+  const d = parseVNDate(dateStr);
+  if(!d) return null;
+  if(timeStr){
+    const m = String(timeStr).trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if(m){ d.setHours(+m[1], +m[2], +(m[3]||0)); }
+  }
+  return d;
+}
+/* So khoảng nghỉ [bắt đầu, kết thúc) với TRỌN NGÀY được xét (00:00 -> 24:00),
+   dùng phép so "chồng lấn khoảng thời gian" thay vì so ngày đơn thuần.
+   Cách này sửa lỗi: người nghỉ và đi làm lại trong CÙNG 1 NGÀY (vd 11h->16h
+   cùng ngày) trước đây bị loại hoàn toàn vì ngày bắt đầu == ngày kết thúc. */
 function isOnLeaveOnDate(rec, date){
-  const start = parseVNDate(rec.ngayBatDauNghi);
-  const end = parseVNDate(rec.ngayDiLam);
+  const start = combineDateTime(rec.ngayBatDauNghi, rec.tGianNghi);
+  const end = combineDateTime(rec.ngayDiLam, rec.tGianDiLam);
   if(!start) return false;
+  const dayStart = new Date(date); dayStart.setHours(0,0,0,0);
+  const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
   if(end){
-    return date >= start && date < end;
+    return dayStart < end && dayEnd > start;
   }
   return sameDay(date, start);
 }
@@ -535,10 +551,7 @@ function renderTable(){
     if(!matchesCommonFilters(r, f)) return false;
     if(f.date){
       const picked = new Date(f.date + 'T00:00:00');
-      const start = parseVNDate(r.ngayBatDauNghi);
-      const end = parseVNDate(r.ngayDiLam);
-      const within = start && (end ? (picked >= start && picked < end) : sameDay(picked,start));
-      if(!within) return false;
+      if(!isOnLeaveOnDate(r, picked)) return false;
     }
     return true;
   });
@@ -592,7 +605,6 @@ function applyFilters(){
 
   let heroList = dedupeByLatestSubmission(ALL_RECORDS.filter(r => isOnLeaveOnDate(r, viewDate)));
   heroList = heroList.filter(r => matchesCommonFilters(r, f));
-  heroList = heroList.filter(r => !(r.xacNhan||"").toLowerCase().includes('xong')); // ẩn đơn đã xác nhận "Xong" khỏi bảng trên
 
   renderSummary(heroList);
   renderHero(heroList, viewDate, filtersActive);
